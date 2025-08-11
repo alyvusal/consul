@@ -1,0 +1,8 @@
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ProxyDefaults
+metadata:
+  name: global
+spec:
+  config:
+    # configure the Envoy proxy sidecars in your service mesh to expose a Prometheus metrics endpoint
+    envoy_prometheus_bind_addr: '0.0.0.0:20200'

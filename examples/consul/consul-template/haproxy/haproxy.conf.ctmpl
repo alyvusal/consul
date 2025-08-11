@@ -1,0 +1,11 @@
+global
+    daemon
+    maxconn {{key "haproxylbinfra/haproxy/maxconn"}}
+
+#defaults
+#    mode {{key "haproxylbinfra/haproxy/mode"}}{{range ls "haproxylbinfra/haproxy/timeouts"}}
+#    timeout {{.Key}} {{.Value}}{{end}}
+#
+#listen http-in
+#    bind *:8000{{range service "release.web"}}
+#    server {{.Node}} {{.Address}}:{{.Port}}{{end}}

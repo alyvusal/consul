@@ -1,0 +1,53 @@
+global:
+  name: consul
+  datacenter: dc1
+  acls:
+    manageSystemACLs: true
+  tls:
+    enabled: true
+  metrics:
+    enabled: true
+
+ui:
+  ingress:
+    enabled: true
+    ingressClassName: "nginx"
+    annotations: |
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    hosts:
+      - host: consul-192.168.0.100.nip.io
+        paths: ["/"]
+  metrics:
+    baseURL: http://prometheus-server.default.svc.cluster.local
+  dashboardURLTemplates:
+    # http://127.0.0.1:3000/d/hashicups/hashicups?orgId=1&refresh=30s&var-datasource=Prometheus&var-service=nginx&var-cluster=All
+    service: "http://grafana.default.svc.cluster.local:3000/d/hashicups/hashicups?orgId=1&var-service={{Service.Name}}&var-namespace={{Service.Namespace}}&var-partition={{Service.Partition}}&var-dc={{Datacenter}}"
+    # service: "http://grafana.default.svc.cluster.local:3000/d/hashicups/hashicups?orgId=1&var-service={{ "{{" }}Service.Name}}&var-namespace={{ "{{" }}Service.Namespace}}&var-dc={{ "{{" }}Datacenter}}"
+
+peering:
+  enabled: true
+
+connectInject:
+  enabled: true
+  default: false
+  namespaceSelector: |
+    matchLabels:
+      connect-inject: enabled
+  metrics:
+    defaultEnabled: true
+    # this makes trouble if all exposed port does not provide /metrics endpoint
+    # like: failed to scrape metrics at url "http://127.0.0.1:5432/metrics
+    defaultEnableMerging: false
+    # annotations being automatically added to the Pod for scraping
+    # defaultPrometheusScrapePort: 20200
+    # defaultPrometheusScrapePath: "/metrics"
+
+# Warning: Defining server extraConfig potentially disrupts the automatic ACL
+#          bootstrapping required settings. This may cause future issues if
+#          there are conflicts
+# server:
+#   extraConfig: |
+#     {
+#       "log_level": "TRACE"
+#     }

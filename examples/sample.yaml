@@ -1,0 +1,58 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample
+  namespace: default
+  labels:
+    app: sample
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: sample
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sample
+  namespace: default
+automountServiceAccountToken: true
+---
+# this part is mandatory, otherwise permission error arises
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceDefaults
+metadata:
+  name: sample
+  namespace: default
+spec:
+  protocol: "http"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: sample
+      app: sample
+  template:
+    metadata:
+      labels:
+        service: sample
+        app: sample
+      # annotations:
+      #   consul.hashicorp.com/connect-inject: "true"
+    spec:
+      serviceAccountName: sample
+      containers:
+        - name: sample
+          image: nginx:stable-alpine
+          ports:
+            - containerPort: 80
+

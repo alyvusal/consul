@@ -1,0 +1,74 @@
+# TODO: Not working
+  name: consul-server-gw
+  namespace: consul
+spec:
+  gatewayClassName: consul
+  # Configures the listener that is bound to the gateway's address.
+  listeners:
+    # Defines the listener protocol (HTTP, HTTPS, or TCP)
+  - protocol: HTTP
+    port: 8080
+    name: http
+    allowedRoutes:
+      namespaces:
+        from: Same  # options: All or Same or Specific
+  - protocol: HTTPS
+    port: 8443
+    name: https
+    allowedRoutes:
+      namespaces:
+        from: Same  # options: All or Same or Specific
+    tls:
+      # Defines the certificate to use for the HTTPS listener.
+      certificateRefs:
+        - name: consul-server-cert
+---
+apiVersion: consul.hashicorp.com/v1alpha1
+kind: ServiceIntentions
+metadata:
+  name: consul-server
+  namespace: consul
+# Allow traffic from api-gateway to nginx
+spec:
+  destination:
+    name: consul-ui
+  sources:
+    - name: consul-server-gw
+      action: allow
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+# HTTPRoute routes HTTP requests to backend services.
+kind: HTTPRoute
+metadata:
+  name: http-route-consul-server
+  namespace: consul
+spec:
+  # Defines the gateway listener.
+  parentRefs:
+  - name: consul-server-gw
+  # Rules define behaviors for network traffic that goes through the route.
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    # Defines the backend service.
+    backendRefs:
+    - kind: Service
+      name: consul-ui
+      namespace: consul
+      port: 443
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: consul-server-reference-grant
+  namespace: consul
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: consul  # Must match the namespace that api-gw/routes.yaml is deployed into
+  to:
+    - group: ""
+      kind: Service

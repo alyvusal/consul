@@ -1,0 +1,20 @@
+version: "3.3"
+
+networks:
+  lab_backend:
+    external: true
+
+services:
+  consul:
+    # https://hub.docker.com/_/consul
+    image: consul
+    container_name: consul
+    hostname: consul
+    restart: unless-stopped
+    networks: [lab_backend]
+    env_file: [env.ini]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.consul.rule=Host(`consul-192.168.0.100.nip.io`)"
+      - "traefik.http.routers.consul.entrypoints=web"
+      - "traefik.http.services.consul.loadbalancer.server.port=8500"

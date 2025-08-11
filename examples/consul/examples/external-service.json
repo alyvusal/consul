@@ -1,0 +1,14 @@
+{
+  "Service": {
+    "Name": "get-ip",
+    "Tags": ["v0.0.4"],
+    "Address": "ifconfig.co",
+    "Port": 443,
+    "Check": {
+      "Method": "GET",
+      "HTTP": "https://ifconfig.co/",
+      "Interval": "5s",
+      "Timeout": "1s"
+    }
+  }
+}
